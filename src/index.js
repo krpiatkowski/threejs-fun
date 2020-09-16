@@ -24,7 +24,7 @@ document.body.appendChild(renderer.domElement);
 var loader = new GLTFLoader();
 loader.load(
   // resource URL
-  "./Cougar.gltf",
+  "./assets/gltf/FLLv2.gltf",
   // called when the resource is loaded
   (gltf) => {
     gltf.scene.traverse((child) => {

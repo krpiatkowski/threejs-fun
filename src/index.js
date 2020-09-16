@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import * as TWEEN from "tween.js";
 import "./style.css";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -17,13 +18,11 @@ var camera = new THREE.PerspectiveCamera(
   maxDistance
 );
 camera.position.set(0, 0, 50);
-
 var scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
+scene.background = new THREE.Color(0x000000);
 
 var light = new THREE.SpotLight(0xffffff, 1, 100, Math.PI / 2, 0.8, 1); // Decay should be used here
-light.position.set(0, 0, 20);
-light.castShadow = true;
+light.position.set(0, 20, 20);
 scene.add(light);
 
 var lightTarget = new THREE.Object3D();
@@ -31,10 +30,10 @@ lightTarget.position.set(0, 0, 0);
 scene.add(lightTarget);
 light.target = lightTarget;
 
-var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-var cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+// var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+// var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+// var cube = new THREE.Mesh(geometry, material);
+// scene.add(cube);
 
 // var lightCube = new THREE.Mesh(
 //   new THREE.BoxGeometry(0.1, 0.1, 0.1),
@@ -48,6 +47,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const models = [
+  "./assets/gltf/grasshopper.gltf",
+  "./assets/gltf/grasshopper.gltf",
+  "./assets/gltf/grasshopper.gltf",
   "./assets/gltf/grasshopper.gltf",
   "./assets/gltf/grasshopper.gltf",
 ];
@@ -78,7 +80,7 @@ for (var i = 0; i < models.length; i++) {
       );
 
       scene.add(gltf.scene);
-      render();
+      // render();
     },
     () => {},
     (err) => {
@@ -91,45 +93,64 @@ const render = () => {
   renderer.render(scene, camera);
 };
 
-// const updateCamera = () => {
-//   camera.position.x = modelOrigins[positionIndex].x;
-//   light.position.x = modelOrigins[positionIndex].x;
-//   lightTarget.position.x = modelOrigins[positionIndex].x;
-//   render();
-// };
+const updateCamera = (fromIndex, toIndex) => {
+  // backup original rotation
+  var start = {
+    lookAtX: modelOrigins[fromIndex].x,
+    cameraX: camera.position.x,
+    cameraY: camera.position.y,
+    cameraZ: camera.position.z,
+  };
+  var end = {
+    lookAtX: modelOrigins[toIndex].x,
+    cameraX: modelOrigins[toIndex].x,
+    cameraY: 0,
+    cameraZ: 50,
+  };
 
-var animate = function () {
-  requestAnimationFrame(animate);
-  // const speed = 0.5;
-  // const expectedX = positionIndex * distanceFactor;
-  // if (camera.position.x > expectedX) {
-  //   camera.position.x -= speed;
-  // }
-  // if (camera.position.x < expectedX) {
-  //   camera.position.x += speed;
-  // }
-  // light.position.x = camera.position.x;
-  // lightTarget.position.x = camera.position.x;
-  render();
+  const t = new TWEEN.Tween(start)
+    .to(end, 1000)
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .start();
+  controls.enabled = false;
+  t.onUpdate(() => {
+    camera.lookAt(start.lookAtX, 0, 0);
+    camera.position.set(start.cameraX, start.cameraY, start.cameraZ);
+    light.position.x = start.lookAtX;
+    lightTarget.position.x = start.lookAtX;
+  });
+  t.onComplete(() => {
+    controls.target.set(start.lookAtX, 0, 0);
+    controls.enabled = true;
+  });
 };
-animate();
 
 var controls = new OrbitControls(camera, renderer.domElement);
-controls.addEventListener("change", (e) => {
-  console.info("change", camera.position);
-  render();
-}); // use if there is no animation loop
 controls.enableKeys = false;
 controls.minDistance = minDistance;
 controls.maxDistance = maxDistance;
-controls.target.set(0, 0, -0.2);
 controls.update();
 
 document.addEventListener("keyup", (e) => {
+  if (!controls.enabled) {
+    return;
+  }
+  const oldIndex = positionIndex;
   if (e.code === "ArrowRight") {
     positionIndex = Math.min(models.length - 1, positionIndex + 1);
   }
   if (e.code === "ArrowLeft") {
     positionIndex = Math.max(0, positionIndex - 1);
   }
+  if (oldIndex !== positionIndex) {
+    updateCamera(oldIndex, positionIndex);
+  }
 });
+console.log(requestAnimationFrame);
+requestAnimationFrame(animate);
+
+function animate(time) {
+  TWEEN.update(time);
+  render();
+  requestAnimationFrame(animate);
+}

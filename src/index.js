@@ -20,23 +20,15 @@ var camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 50);
 var scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
-
-var light = new THREE.SpotLight(0xffffff, 1, 100, Math.PI / 2, 0.8, 1); // Decay should be used here
+// scene.add(new THREE.AmbientLight(0x151515));
+var light = new THREE.SpotLight(0xffffff, 2, 100, Math.PI / 2, 0.8, 1); // Decay should be used here
 light.position.set(0, 20, 20);
 scene.add(light);
-scene.add(new THREE.AmbientLight(0x151515));
 
 var lightTarget = new THREE.Object3D();
 lightTarget.position.set(0, 0, 0);
 scene.add(lightTarget);
 light.target = lightTarget;
-
-// var lightCube = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.1, 0.1, 0.1),
-//   new THREE.MeshBasicMaterial({ color: 0xff0000 })
-// );
-// lightCube.position.set(light.position.x, light.position.y, light.position.z);
-// scene.add(lightCube);
 
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -120,7 +112,7 @@ const updateCamera = (fromIndex, toIndex) => {
   t.onUpdate(() => {
     camera.lookAt(start.lookAtX, 0, 0);
     camera.position.set(start.cameraX, start.cameraY, start.cameraZ);
-    light.position.x = start.lookAtX;
+    // light.position.x = start.lookAtX;
     lightTarget.position.x = start.lookAtX;
   });
   t.onComplete(() => {
@@ -155,6 +147,7 @@ requestAnimationFrame(animate);
 
 function animate(time) {
   TWEEN.update(time);
+  light.position.set(camera.position.x, camera.position.y, camera.position.z);
   render();
   requestAnimationFrame(animate);
 }

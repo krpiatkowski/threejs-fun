@@ -24,16 +24,12 @@ scene.background = new THREE.Color(0x000000);
 var light = new THREE.SpotLight(0xffffff, 1, 100, Math.PI / 2, 0.8, 1); // Decay should be used here
 light.position.set(0, 20, 20);
 scene.add(light);
+scene.add(new THREE.AmbientLight(0x151515));
 
 var lightTarget = new THREE.Object3D();
 lightTarget.position.set(0, 0, 0);
 scene.add(lightTarget);
 light.target = lightTarget;
-
-// var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-// var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-// var cube = new THREE.Mesh(geometry, material);
-// scene.add(cube);
 
 // var lightCube = new THREE.Mesh(
 //   new THREE.BoxGeometry(0.1, 0.1, 0.1),
@@ -47,10 +43,13 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const models = [
+  "./assets/gltf/meteorologist.gltf",
   "./assets/gltf/grasshopper.gltf",
+  "./assets/gltf/meteorologist.gltf",
   "./assets/gltf/grasshopper.gltf",
+  "./assets/gltf/meteorologist.gltf",
   "./assets/gltf/grasshopper.gltf",
-  "./assets/gltf/grasshopper.gltf",
+  "./assets/gltf/meteorologist.gltf",
   "./assets/gltf/grasshopper.gltf",
 ];
 const modelOrigins = [];
@@ -59,6 +58,11 @@ var loader = new GLTFLoader();
 
 for (var i = 0; i < models.length; i++) {
   const index = i;
+  // var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+  // var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  // var cube = new THREE.Mesh(geometry, material);
+  // cube.position.set(index * distanceFactor, 0, 0);
+  // scene.add(cube);
   loader.load(
     models[index],
     (gltf) => {
@@ -96,14 +100,14 @@ const render = () => {
 const updateCamera = (fromIndex, toIndex) => {
   // backup original rotation
   var start = {
-    lookAtX: modelOrigins[fromIndex].x,
+    lookAtX: fromIndex * distanceFactor,
     cameraX: camera.position.x,
     cameraY: camera.position.y,
     cameraZ: camera.position.z,
   };
   var end = {
-    lookAtX: modelOrigins[toIndex].x,
-    cameraX: modelOrigins[toIndex].x,
+    lookAtX: toIndex * distanceFactor,
+    cameraX: toIndex * distanceFactor,
     cameraY: 0,
     cameraZ: 50,
   };
@@ -146,7 +150,7 @@ document.addEventListener("keyup", (e) => {
     updateCamera(oldIndex, positionIndex);
   }
 });
-console.log(requestAnimationFrame);
+
 requestAnimationFrame(animate);
 
 function animate(time) {
